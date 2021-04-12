@@ -67,20 +67,24 @@ class PlotComparison:
         self.seconds = []
 
     def _compute_time_since_start(self):
-        for i in range(len(self.times_raw[0])):
-            td = pd.Timedelta(str(self.times_raw[0][i] - self.times_raw[0][0]))
-            self.times_since_start.append(td.seconds + (td.microseconds / 1000000) + (td.nanoseconds / 1000000000))
+        for time_raw in self.times_raw:
+            start_time = time_raw[0]
+            time_since_start = []
+            for t in time_raw:
+                td = pd.Timedelta(str(t - start_time))
+                time_since_start.append(td.seconds + (td.microseconds / 1000000) + (td.nanoseconds / 1000000000))
+            self.times_since_start.append(time_since_start)
 
     def _compute_throughput(self):
-        for data in self.df:
+        for i in range(len(self.df)):
             next_whole_sec = 1
             data_sent = 0
             throughput = []
             seconds = []
-            for i in range(len(data['frame.len'])):
-                data_sent += data['frame.len'][i]
+            for t in range(len(self.df[i]['frame.len'])):
+                data_sent += self.df[i]['frame.len'][t]
 
-                if self.times_since_start[i] > float(next_whole_sec):
+                if self.times_since_start[i][t] > float(next_whole_sec):
                     throughput.append((data_sent * 8) / 1000000)
                     seconds.append(next_whole_sec)
                     data_sent = 0

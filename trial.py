@@ -149,9 +149,9 @@ class Trial:
 # TCP RWIN comparison
 class RwinTrial(Trial):
     def _global_init(self):
-        self.sudo(self.mlcnet_ssh, "sysctl net.ipv4.tcp_mem=60000000 60000000 60000000")
-        self.sudo(self.mlcnet_ssh, "sysctl net.ipv4.tcp_wmem=60000000 60000000 60000000")
-        self.sudo(self.mlcnet_ssh, "sysctl net.ipv4.tcp_rmem=60000000 60000000 60000000")
+        self.sudo(self.mlcnet_ssh, 'sysctl net.ipv4.tcp_mem="60000000 60000000 60000000"')
+        self.sudo(self.mlcnet_ssh, 'sysctl net.ipv4.tcp_wmem="60000000 60000000 60000000"')
+        self.sudo(self.mlcnet_ssh, 'sysctl net.ipv4.tcp_rmem="60000000 60000000 60000000"')
 
     def _set_default_sysctl_settings(self):
         self.sudo(self.mlcnet_ssh, "sysctl net.core.rmem_max=212992")
