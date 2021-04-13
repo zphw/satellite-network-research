@@ -1,7 +1,8 @@
 import os
 import time
 from log import logger
-from plot import PlotComparison
+from plot import PlotComparison, PlotAverage
+from scp import SCPClient
 from ssh_client import SSHClientOverProxy
 
 
@@ -87,12 +88,14 @@ class Trial:
                                     -E quote=d \
                                     -E occurrence=f \
                                     > ~/{csv_filename}'
-        self.mlcnet_ssh.exec_command(command)
+        stdin, stdout, stderr = self.mlcnet_ssh.exec_command(command)
+        while not stdout.channel.exit_status_ready():
+            time.sleep(1)
 
     def _download_mlcnet_file(self, remote_file, download_to):
-        sftp = self.mlcnet_ssh.open_sftp()
-        sftp.get(remote_file, download_to)
-        sftp.close()
+        scp = SCPClient(self.mlcnet_ssh.get_transport())
+        scp.get(remote_file, download_to)
+        scp.close()
 
     # Trial Procedure Functions End #
 
@@ -180,6 +183,13 @@ class RwinTrial(Trial):
 
         self._set_default_sysctl_settings()
 
+    def run_five_default(self):
+        self._global_init()
+        self._set_default_sysctl_settings()
+
+        for i in range(5):
+            self._run_a_trial()
+
 
 def main():
     username = ""
@@ -187,13 +197,11 @@ def main():
     protocol = "cubic"
 
     rwin_trial = RwinTrial(protocol, username, password, iperf_data="1G")
-    rwin_trial.run()
+    rwin_trial.run_five_default()
 
-    p = PlotComparison(protocol,
-                       ["default rwin", "higher rwin"],
-                       [f"{os.getcwd()}/csv_files/{rwin_trial.get_names()[0]}.csv",
-                        f"{os.getcwd()}/csv_files/{rwin_trial.get_names()[1]}.csv"],
-                       rwin_trial.get_names()[0])
+    p = PlotAverage(protocol,
+                    [f"{os.getcwd()}/csv_files/{name}.csv" for name in rwin_trial.get_names()],
+                    rwin_trial.get_names()[0])
     p.plot_tput_vs_time()
 
 
