@@ -3,53 +3,8 @@ import pandas as pd
 from log import logger
 
 
-class PlotOne:
-    def __init__(self, protocol, csv_file, output_name):
-        self.protocol = protocol
-        self.csv_file = csv_file
-        self.output_name = output_name
-        self.df = pd.read_csv(csv_file)
-        self.times_raw = pd.to_datetime(self.df['frame.time'], infer_datetime_format=True)
-        self.times_since_start = []
-        self.throughput = []
-        self.seconds = []
-
-    def _compute_time_since_start(self):
-        for i in range(len(self.times_raw)):
-            td = pd.Timedelta(str(self.times_raw[i] - self.times_raw[0]))
-            self.times_since_start.append(td.seconds + (td.microseconds / 1000000) + (td.nanoseconds / 1000000000))
-
-    def _compute_throughput(self):
-        next_whole_sec = 1
-        data_sent = 0
-        for i in range(len(self.df['frame.len'])):
-            data_sent += self.df['frame.len'][i]
-
-            if self.times_since_start[i] > float(next_whole_sec):
-                self.throughput.append((data_sent * 8) / 1000000)
-                self.seconds.append(next_whole_sec)
-                data_sent = 0
-                next_whole_sec += 1
-
-    def plot_tput_vs_time(self):
-        logger.info("Started plotting...")
-        self._compute_time_since_start()
-        self._compute_throughput()
-
-        plt.plot(self.seconds, self.throughput)
-        plt.xlabel("Time (seconds)")
-        plt.ylabel("Throughput (Mbits)")
-        plt.legend([self.protocol])
-        plt.title('Throughput vs Time')
-        filename = f'graphs/{self.output_name}-throughput-vs-time.png'
-        plt.savefig(filename)
-        logger.info("Plot saved to " + filename)
-
-        plt.show()
-
-
 class PlotComparison:
-    def __init__(self, protocol, legends, csv_files, trial_name):
+    def __init__(self, protocol, csv_files, trial_name, legends=None):
         self.protocol = protocol
         self.legends = legends
         self.csv_files = csv_files
@@ -104,6 +59,40 @@ class PlotComparison:
         plt.ylabel("Throughput (Mbits)")
         plt.legend(self.legends)
         plt.title(self.protocol)
+        plot_filename = f'graphs/{self.trial_name}-throughput-vs-time.png'
+        plt.savefig(plot_filename)
+        logger.info("Plot saved to " + plot_filename)
+
+        plt.show()
+
+
+class PlotAverage(PlotComparison):
+    def plot_tput_vs_time(self):
+        logger.info("Started plotting...")
+        self._compute_time_since_start()
+        self._compute_throughput()
+
+        for i in range(len(self.throughput)):
+            plt.plot(self.seconds[i], self.throughput[i], '.', color='tab:blue')
+
+        # throughput_array = np.array(self.throughput)
+        max_times = max(self.seconds, key=len)
+        avg_tput = []
+        for t in range(len(max_times)):
+            tput_sum = 0
+            tput_num = 0
+            for i in range(len(self.throughput)):
+                if len(self.throughput[i]) > t:
+                    tput_sum += self.throughput[i][t]
+                    tput_num += 1
+            tput_sum /= tput_num
+            avg_tput.append(tput_sum)
+
+        plt.plot(max_times, avg_tput, color='tab:orange')
+
+        plt.xlabel("Time (seconds)")
+        plt.ylabel("Throughput (Mbits)")
+        plt.title(self.protocol + " - Average")
         plot_filename = f'graphs/{self.trial_name}-throughput-vs-time.png'
         plt.savefig(plot_filename)
         logger.info("Plot saved to " + plot_filename)
