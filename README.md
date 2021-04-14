@@ -14,15 +14,17 @@ pip3 install -r requirements.txt
 
 ## Usage
 
-First, modify `trial.py` to fill in your SSH user/password and the protocol for the trial.
+The Trial class in the module `trial.py` serves as the template class, a basic trial, and can be extended to create customized trials.
+
+To run or create a trial, you can check [hystart_trial.py](../blob/master/hystart_trial.py) for example and modify the file to fill in your SSH username/password and the protocol for the trial.
 
 Then, run
 
 ```
-python3 trial.py
+python3 hystart_trial.py
 ```
 
-The script will automatically run the trial and generate the plot.
+It will automatically run the trial and generate the plot.
 
 ## Credits
 
