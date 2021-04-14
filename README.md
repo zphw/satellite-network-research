@@ -16,7 +16,7 @@ pip3 install -r requirements.txt
 
 The Trial class in the module `trial.py` serves as the template class, a basic trial, and can be extended to create customized trials.
 
-To run or create a trial, you can check [hystart_trial.py](../blob/master/hystart_trial.py) for example and modify the file to fill in your SSH username/password and the protocol for the trial.
+To run or create a trial, you can check [hystart_trial.py](../master/hystart_trial.py) for example and modify the file to fill in your SSH username/password and the protocol for the trial.
 
 Then, run
 
