@@ -1,7 +1,6 @@
 import os
 import time
 from log import logger
-from plot import PlotComparison, PlotAverage
 from scp import SCPClient
 from ssh_client import SSHClientOverProxy
 
@@ -57,7 +56,7 @@ class Trial:
 
     def _start_tcpdump(self, pcap_filename):
         self.sudo(self.mlcnet_ssh,
-                  "tcpdump -i ens2 -s 96 src port {} -w {}".format(self.iperf_server_port, pcap_filename))
+                  "tcpdump -i ens2 -s 96 port {} -w {}".format(self.iperf_server_port, pcap_filename))
 
     def _start_iperf3_client(self, server):
         if self.iperf3_data is not None:
@@ -78,11 +77,13 @@ class Trial:
                                     -e frame.number \
                                     -e frame.len \
                                     -e tcp.window_size \
-                                    -e ip.src \
-                                    -e ip.dst \
                                     -e tcp.srcport \
                                     -e tcp.dstport \
-                                    -e frame.time \
+                                    -e tcp.analysis.ack_rtt \
+                                    -e tcp.analysis.retransmission \
+                                    -e tcp.analysis.fast_retransmission \
+                                    -e tcp.analysis.bytes_in_flight \
+                                    -e tcp.time_relative \
                                     -E header=y \
                                     -E separator=, \
                                     -E quote=d \

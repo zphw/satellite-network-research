@@ -1,6 +1,6 @@
 import os
 from log import logger
-from plot import PlotAverage, PlotMultipleAverage
+from plot import PlotAverage, PlotAverageSummary
 from trial import Trial
 
 
@@ -17,18 +17,22 @@ class HystartTrial(Trial):
     def run(self):
         self._global_init()
 
-        # Run with hystart on
-        logger.info("Running with hystart on")
+        # 10 rounds on/off
+        for i in range(10):
+            logger.info("Running with hystart on")
+            self._set_hystart(1)
+            self._run_a_trial()
+
+            logger.info("Running with hystart off")
+            self._set_hystart(0)
+            self._run_a_trial()
+
         self._set_hystart(1)
-        for i in range(5):
-            self._run_a_trial()
 
-        # Run with hystart off
-        logger.info("Running with hystart off")
+    def run_test(self):
+        self._global_init()
         self._set_hystart(0)
-        for i in range(5):
-            self._run_a_trial()
-
+        self._run_a_trial()
         self._set_hystart(1)
 
 
@@ -40,25 +44,25 @@ def main():
     hystart_trial = HystartTrial(protocol, username, password, iperf_data="1G")
     hystart_trial.run()
 
-    # first 5 will be trials with hystart on - :5
+    # trials with hystart on
     p_on = PlotAverage("CUBIC - HyStart On",
-                       [f"{os.getcwd()}/csv_files/{name}.csv" for name in hystart_trial.get_names()[:5]],
-                       hystart_trial.get_names()[0])
-    p_on.plot_tput_vs_time()
+                       [f"{os.getcwd()}/csv_files/{name}.csv" for name in hystart_trial.get_names()[::2]],
+                       hystart_trial.get_names()[0] + "_on")
+    p_on.plot()
 
-    # last 5 will be trials with hystart off - 5:
+    # trials with hystart off
     p_off = PlotAverage("CUBIC - HyStart Off",
-                        [f"{os.getcwd()}/csv_files/{name}.csv" for name in hystart_trial.get_names()[5:]],
-                        hystart_trial.get_names()[5])
-    p_off.plot_tput_vs_time()
+                        [f"{os.getcwd()}/csv_files/{name}.csv" for name in hystart_trial.get_names()[1::2]],
+                        hystart_trial.get_names()[0] + "_off")
+    p_off.plot()
 
     # two average lines
-    p_averages = PlotMultipleAverage("CUBIC - HyStart On/Off",
-                                     [f"{os.getcwd()}/csv_files/{name}.csv" for name in hystart_trial.get_names()],
-                                     hystart_trial.get_names()[0] + "_avg",
-                                     ["HyStar On", "HyStart Off"])
+    """p_averages = PlotAverageSummary("CUBIC - HyStart On/Off",
+                                    [f"{os.getcwd()}/csv_files/{name}.csv" for name in hystart_trial.get_names()],
+                                    hystart_trial.get_names()[0] + "_avg",
+                                    ["HyStart On", "HyStart Off"])
     p_averages.set_breakpoint([5])
-    p_averages.plot_tput_vs_time()
+    p_averages.plot_tput_vs_time()"""
 
 
 if __name__ == "__main__":
